@@ -103,3 +103,11 @@ The inference pipeline corresponds directly to the original model structure:
 4. **Boundary to Duration Conversion**: The predicted boundaries are run through `bd2dur.onnx` to compute note durations (`durations`) and note masks (`mask_n`).
 5. **Pitch Estimation**: The estimator model (`estimator.onnx`) uses `x_est` and boundaries to predict presence probabilities and pitch scores.
 6. **MIDI Exporter**: voicings are filtered and overlapping notes are cleaned up before outputting a standard single-track metrical MIDI file using the `midly` crate.
+
+## Disclaimer
+
+Any organization or individual is prohibited from using any functionalities included in this repository to generate someone's singing or speech without his/her consent, including but not limited to government leaders, political figures, and celebrities. If you do not comply with this item, you could be in violation of copyright laws.
+
+## License
+
+This repository is licensed under the MIT License.
