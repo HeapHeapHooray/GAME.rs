@@ -1,0 +1,140 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact-game: game_rs_linux
+            artifact-installer: installer_linux
+            binary-game: target/release/game_rs
+            binary-installer: target/release/installer
+          - os: macos-latest
+            artifact-game: game_rs_mac
+            artifact-installer: installer_mac
+            binary-game: target/release/game_rs
+            binary-installer: target/release/installer
+          - os: windows-latest
+            artifact-game: game_rs.exe
+            artifact-installer: installer.exe
+            binary-game: target/release/game_rs.exe
+            binary-installer: target/release/installer.exe
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Project
+        run: cargo build --release
+
+      - name: Rename and Prepare Binaries
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp ${{ matrix.binary-game }} dist/${{ matrix.artifact-game }}
+          cp ${{ matrix.binary-installer }} dist/${{ matrix.artifact-installer }}
+
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ runner.os }}
+          path: dist/*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Linux Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-Linux
+          path: temp-binaries/linux
+
+      - name: Download macOS Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-macOS
+          path: temp-binaries/macos
+
+      - name: Download Windows Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries-Windows
+          path: temp-binaries/windows
+
+      - name: Assemble Release Folder
+        run: |
+          mkdir -p release-payload/executables
+          
+          # Copy Installers to Root
+          cp temp-binaries/linux/installer_linux release-payload/installer_linux
+          cp temp-binaries/macos/installer_mac release-payload/installer_mac
+          cp temp-binaries/windows/installer.exe release-payload/installer.exe
+          
+          # Copy game_rs Executables to folder
+          cp temp-binaries/linux/game_rs_linux release-payload/executables/game_rs_linux
+          cp temp-binaries/macos/game_rs_mac release-payload/executables/game_rs_mac
+          cp temp-binaries/windows/game_rs.exe release-payload/executables/game_rs.exe
+          
+          # Make sure Unix installers/binaries are executable
+          chmod +x release-payload/installer_linux
+          chmod +x release-payload/installer_mac
+          chmod +x release-payload/executables/game_rs_linux
+          chmod +x release-payload/executables/game_rs_mac
+
+      - name: Zip Distribution Folder
+        run: |
+          zip -r game_rs_dist_all_platforms.zip release-payload/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: game_rs_dist_all_platforms.zip
+          name: Release ${{ github.ref_name }}
+          body: |
+            Automatic release for version ${{ github.ref_name }}.
+            
+            This archive contains precompiled binaries and installers for Windows, macOS, and Linux.
+            
+            ### Package Layout:
+            ```text
+            ├── installer_linux
+            ├── installer_mac
+            ├── installer.exe
+            └── executables/
+                 ├── game_rs_linux
+                 ├── game_rs_mac
+                 └── game_rs.exe
+            ```
+            *Note: Model checkpoints are downloaded and unpacked automatically during installation.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
