@@ -18,20 +18,49 @@ This implementation replaces the original PyTorch-based inference script with a 
 ## Prerequisites
 
 Before building or running the project, make sure you have:
-1. The Rust toolchain (Cargo/rustc 1.70+) installed.
-2. The exported ONNX model checkpoints of the model (e.g. `GAME-1.0-large-onnx`). If you haven't exported them yet, you can run the original Python project's `deploy.py` script to generate them.
+1. The Rust toolchain (Cargo/rustc 1.70+) installed (only required if building from source).
+2. The model checkpoints. These will be automatically downloaded by the installer, or they can be manually placed under a `checkpoints/` directory.
 
 ---
 
-## Compilation
+## Compilation & Installation
 
-Build the project in release mode for maximum performance:
+### Option 1: Compiling only from source
+Build the project in release mode:
 
 ```bash
 cargo build --release
 ```
 
 The compiled binary will be located at `target/release/game_rs`.
+
+### Option 2: Full Installation (Shipped with pre-built binaries 🚀)
+The installer executables (`installer_linux`, `installer_mac`, `installer.exe`) are shipped in a distribution folder containing an `executables/` subfolder. This subfolder hosts the pre-built platform binaries of `game_rs`:
+* `executables/game_rs_linux`
+* `executables/game_rs_mac`
+* `executables/game_rs.exe`
+
+To install the application:
+1. Open your terminal in the distribution folder.
+2. Run the platform-specific installer binary:
+   * **Linux**: `./installer_linux`
+   * **macOS**: `./installer_mac`
+   * **Windows**: `installer.exe`
+
+*(Note: If building from source, you can launch the installer using cargo: `cargo run --release --bin installer`)*
+
+This installer performs the following actions:
+1. **Installs the Binary**: Copies the executable to a persistent location (`~/.local/share/game_rs/` on macOS/Linux or `%USERPROFILE%\.game_rs\` on Windows).
+2. **Downloads & Unpacks Checkpoints**: Downloads the 50 MB model checkpoint package (`GAME-1.0.3-large-onnx.zip`) from GitHub Releases, extracts it directly to the persistent checkpoints folder, and removes the temporary archive.
+3. **Configures the System PATH**:
+   * **macOS & Linux**: Creates a symlink at `~/.local/bin/game_rs`.
+   * **Windows**: Automatically appends the installation folder to the User's registry `Path` environment variable.
+
+### Automated Releases (CI/CD)
+The repository includes a pre-configured GitHub Actions release pipeline located in `.github/workflows/release.yml`. When you push a version tag (e.g., `git tag v1.0.0 && git push origin v1.0.0`), it will:
+1. Natively compile `game_rs` and `installer` on Linux, macOS, and Windows.
+2. Structure them into the unified distribution format (`executables/` directory and installers).
+3. Pack the output payload into `game_rs_dist_all_platforms.zip` and publish it directly to a new GitHub Release page.
 
 ---
 
