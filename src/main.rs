@@ -28,8 +28,8 @@ struct Args {
     output: Option<PathBuf>,
 
     /// Path to the directory containing ONNX models (config.json, encoder.onnx, etc.)
-    #[arg(short, long, default_value = "checkpoints/GAME-1.0-large-onnx")]
-    model_dir: PathBuf,
+    #[arg(short, long)]
+    model_dir: Option<PathBuf>,
 
     /// Tempo (BPM) for output MIDI
     #[arg(long, default_value_t = 120.0)]
@@ -82,7 +82,15 @@ fn main() -> Result<()> {
     ort::init().commit();
 
     // 1. Load configuration
-    let config_path = args.model_dir.join("config.json");
+    let model_dir = match args.model_dir {
+        Some(path) => path,
+        None => {
+            let exe_path = std::env::current_exe()?;
+            let exe_dir = exe_path.parent().ok_or_else(|| anyhow!("Failed to get executable directory"))?;
+            exe_dir.join("checkpoints/GAME-1.0-large-onnx")
+        }
+    };
+    let config_path = model_dir.join("config.json");
     if !config_path.exists() {
         return Err(anyhow!("Model config file not found: {:?}", config_path));
     }
@@ -125,11 +133,11 @@ fn main() -> Result<()> {
     println!("Selected language: {:?} -> ID: {}", args.language, language_id);
 
     // 4. Initialize ONNX Sessions
-    println!("Initializing ONNX sessions from {:?}", args.model_dir);
-    let mut encoder_sess = Session::builder()?.commit_from_file(args.model_dir.join("encoder.onnx"))?;
-    let mut segmenter_sess = Session::builder()?.commit_from_file(args.model_dir.join("segmenter.onnx"))?;
-    let mut bd2dur_sess = Session::builder()?.commit_from_file(args.model_dir.join("bd2dur.onnx"))?;
-    let mut estimator_sess = Session::builder()?.commit_from_file(args.model_dir.join("estimator.onnx"))?;
+    println!("Initializing ONNX sessions from {:?}", model_dir);
+    let mut encoder_sess = Session::builder()?.commit_from_file(model_dir.join("encoder.onnx"))?;
+    let mut segmenter_sess = Session::builder()?.commit_from_file(model_dir.join("segmenter.onnx"))?;
+    let mut bd2dur_sess = Session::builder()?.commit_from_file(model_dir.join("bd2dur.onnx"))?;
+    let mut estimator_sess = Session::builder()?.commit_from_file(model_dir.join("estimator.onnx"))?;
     println!("All ONNX sessions successfully initialized!");
 
     // 5. Run Encoder

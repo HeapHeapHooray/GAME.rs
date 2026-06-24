@@ -53,7 +53,7 @@ Run transcription on an audio file using the compiled binary:
 ### CLI Parameters & Flags
 
 * `<input>`: **(Required)** Path to the input audio file (supports FLAC, WAV, MP3, etc.).
-* `-m, --model-dir <path>`: Path to the directory containing the ONNX models (`config.json`, `encoder.onnx`, `segmenter.onnx`, `bd2dur.onnx`, `estimator.onnx`). *Default: `checkpoints/GAME-1.0-large-onnx`*.
+* `-m, --model-dir <path>`: Path to the directory containing the ONNX models (`config.json`, `encoder.onnx`, `segmenter.onnx`, `bd2dur.onnx`, `estimator.onnx`). *Default: `checkpoints/GAME-1.0-large-onnx` (resolved relative to the directory containing the running executable)*.
 * `-o, --output <path>`: Destination path for the output MIDI file. *Default: `<input-name>.mid`*.
 * `--tempo <bpm>`: Tempo for the exported MIDI. *Default: `120.0`*.
 * `--seg-threshold <threshold>`: Boundary decoding threshold for the segmentation model. *Default: `0.2`*.
