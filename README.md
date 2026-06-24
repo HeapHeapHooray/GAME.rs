@@ -1,6 +1,6 @@
-# GAME_rust
+# GAME.rs
 
-A high-performance, native Rust reimplementation of the inference pipeline for **GAME (Generative Adaptive MIDI Extractor)**.
+A high-performance, native Rust reimplementation of the inference pipeline for **GAME (Generative Adaptive MIDI Extractor)**. Made with Gemini 🚀
 
 This implementation replaces the original PyTorch-based inference script with a fast, self-contained CLI tool utilizing ONNX Runtime and the Symphonia audio decoding library.
 
@@ -31,7 +31,7 @@ Build the project in release mode for maximum performance:
 cargo build --release
 ```
 
-The compiled binary will be located at `target/release/game_rust`.
+The compiled binary will be located at `target/release/game_rs`.
 
 ---
 
@@ -40,12 +40,12 @@ The compiled binary will be located at `target/release/game_rust`.
 Run transcription on an audio file using the compiled binary:
 
 ```bash
-./target/release/game_rust <input-audio-file> --model-dir <onnx-model-dir> [options]
+./target/release/game_rs <input-audio-file> --model-dir <onnx-model-dir> [options]
 ```
 
 ### Example
 ```bash
-./target/release/game_rust "/path/to/audio.flac" \
+./target/release/game_rs "/path/to/audio.flac" \
   --model-dir "/path/to/model_onnx" \
   --output "output.mid"
 ```
