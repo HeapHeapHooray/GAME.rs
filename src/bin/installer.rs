@@ -78,7 +78,7 @@ fn main() -> Result<()> {
     let zip_temp_path = install_dir.join("checkpoints.zip");
     let checkpoint_url = "https://github.com/openvpi/GAME/releases/download/v1.0.3/GAME-1.0.3-large-onnx.zip";
     
-    println!("Downloading checkpoints (approx. 50 MB) from: {}", checkpoint_url);
+    println!("Downloading checkpoints (approx. 345 MB) from: {}", checkpoint_url);
     let mut response = ureq::get(checkpoint_url).call()?;
     
     let mut zip_file = fs::File::create(&zip_temp_path)?;
